@@ -20,8 +20,7 @@ def load_db():
         return {
             "users": {},
             "stock": {
-                "MLBBbal":
-                {},  # {"1000": ["code1", "code2"], "2000": ["code3"]}
+                "MLBBbal": {},  # {"1000": ["code1", "code2"], "2000": ["code3"]}
                 "MLBBph": {},
                 "PUPG": {}
             },
@@ -37,19 +36,19 @@ def load_db():
                     "phone": "09673585480",
                     "name": "Nine Nine"
                 },
-                "KPay": {
+                "Kpay": {
                     "phone": "09678786528",
                     "name": "Ma May Phoo Wai"
                 }
             },
-            "sales_total": 0
+            "sales_total": 0,
+            "pending_registrations": {}
         }
     with open(DB_FILE, "r") as f:
         data = json.load(f)
 
     # Update old structure if needed
-    if "stock" in data and isinstance(data["stock"],
-                                      dict) and "mlbb" in data["stock"]:
+    if "stock" in data and isinstance(data["stock"], dict) and "mlbb" in data["stock"]:
         new_stock = {"MLBBbal": {}, "MLBBph": {}, "PUPG": {}}
         new_prices = {"MLBBbal": {}, "MLBBph": {}, "PUPG": {}}
 
@@ -86,8 +85,10 @@ def load_db():
         data["stock"] = {"MLBBbal": {}, "MLBBph": {}, "PUPG": {}}
     if "prices" not in data:
         data["prices"] = {"MLBBbal": {}, "MLBBph": {}, "PUPG": {}}
-    if "topup_requests" not in data: data["topup_requests"] = {}
-    if "users" not in data: data["users"] = {}
+    if "topup_requests" not in data: 
+        data["topup_requests"] = {}
+    if "users" not in data: 
+        data["users"] = {}
     if "payment" not in data:
         data["payment"] = {
             "Wave": {
@@ -99,8 +100,10 @@ def load_db():
                 "name": "Ma May Phoo Wai"
             }
         }
-    if "sales_total" not in data: data["sales_total"] = 0
-    if "pending_registrations" not in data: data["pending_registrations"] = {}
+    if "sales_total" not in data: 
+        data["sales_total"] = 0
+    if "pending_registrations" not in data: 
+        data["pending_registrations"] = {}
 
     # Clear old codes from MLBBph and PUPG (one-time cleanup)
     if "cleanup_done" not in data:
@@ -220,10 +223,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Send to admin
         keyboard = [[
-            InlineKeyboardButton("✅ လက်ခံရန်",
-                                 callback_data=f"approve_reg_{uid}"),
-            InlineKeyboardButton("❌ ငြင်းပယ်ရန်",
-                                 callback_data=f"reject_reg_{uid}")
+            InlineKeyboardButton("✅ လက်ခံရန်", callback_data=f"approve_reg_{uid}"),
+            InlineKeyboardButton("❌ ငြင်းပယ်ရန်", callback_data=f"reject_reg_{uid}")
         ]]
         await context.bot.send_message(
             chat_id=ADMIN_ID,
@@ -256,17 +257,14 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         can_buy = False
         for game_type in db["prices"]:
             for amount, price in db["prices"][game_type].items():
-                if amount in db["stock"].get(
-                        game_type, {}) and db["stock"][game_type][amount]:
+                if amount in db["stock"].get(game_type, {}) and db["stock"][game_type][amount]:
                     if user['balance'] >= price:
                         can_buy = True
                         break
 
         if not can_buy:
-            keyboard.append(
-                [InlineKeyboardButton("💳 ငွေဖြည့်ရန်", callback_data="topup")])
-        keyboard.append(
-            [InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="start")])
+            keyboard.append([InlineKeyboardButton("💳 ငွေဖြည့်ရန်", callback_data="topup")])
+        keyboard.append([InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="start")])
         await query.edit_message_text(
             f"💰 လက်ကျန်ငွေ: {user['balance']} MMK",
             reply_markup=InlineKeyboardMarkup(keyboard))
@@ -296,8 +294,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         context.user_data['topup_method'] = payment_method
         keyboard = [[
-            InlineKeyboardButton(f"📋 {payment_info['phone']}",
-                                 callback_data=f"copy_{payment_info['phone']}")
+            InlineKeyboardButton(f"📋 {payment_info['phone']}", callback_data=f"copy_{payment_info['phone']}")
         ], [InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="topup")]]
 
         await query.edit_message_text(
@@ -317,11 +314,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data.startswith("copy_"):
         phone_number = data.split("_", 1)[1]
         # Send the phone number as a separate message for easier copying
-        await context.bot.send_message(chat_id=query.from_user.id,
-                                       text=phone_number)
-        await query.answer(
-            f"📋 {phone_number} ကိုပို့ပေးပြီးပါပြီ! အပေါ်ကစာကို ကူးယူပါ။",
-            show_alert=True)
+        await context.bot.send_message(chat_id=query.from_user.id, text=phone_number)
+        await query.answer(f"📋 {phone_number} ကိုပို့ပေးပြီးပါပြီ! အပေါ်ကစာကို ကူးယူပါ။", show_alert=True)
 
     elif data == "help":
         keyboard = [[
@@ -357,15 +351,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for game_type in ["MLBBbal", "MLBBph", "PUPG"]:
             amounts = get_available_amounts(game_type)
             if amounts:
-                total_codes = sum(
-                    len(codes)
-                    for codes in db["stock"].get(game_type, {}).values())
+                total_codes = sum(len(codes) for codes in db["stock"].get(game_type, {}).values())
                 if total_codes > 0:
                     game_name = get_game_display_name(game_type)
                     keyboard.append([
-                        InlineKeyboardButton(
-                            f"🎮 {game_name} ({total_codes})",
-                            callback_data=f"select_{game_type}")
+                        InlineKeyboardButton(f"🎮 {game_name} ({total_codes})", callback_data=f"select_{game_type}")
                     ])
                     available_games.append(game_type)
 
@@ -378,8 +368,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=InlineKeyboardMarkup(keyboard))
             return
 
-        keyboard.append(
-            [InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="start")])
+        keyboard.append([InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="start")])
         await query.edit_message_text(
             "🎮 ဂိမ်းအမျိုးအစားရွေးချယ်ပါ:",
             reply_markup=InlineKeyboardMarkup(keyboard))
@@ -405,13 +394,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             price = db["prices"][game_type].get(amount, 0)
             unit = "Coin" if "MLBB" in game_type else "UC"
             keyboard.append([
-                InlineKeyboardButton(
-                    f"💎 {amount} {unit} - {price} MMK ({codes_count})",
-                    callback_data=f"amount_{game_type}_{amount}")
+                InlineKeyboardButton(f"💎 {amount} {unit} - {price} MMK ({codes_count})", callback_data=f"amount_{game_type}_{amount}")
             ])
 
-        keyboard.append(
-            [InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="buy")])
+        keyboard.append([InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data="buy")])
         await query.edit_message_text(
             f"🎮 {game_name}\n💎 အရေအတွက်ရွေးချယ်ပါ:",
             reply_markup=InlineKeyboardMarkup(keyboard))
@@ -421,11 +407,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         game_type = parts[1]
         amount = parts[2]
 
-        if amount not in db["stock"].get(
-                game_type, {}) or not db["stock"][game_type][amount]:
+        if amount not in db["stock"].get(game_type, {}) or not db["stock"][game_type][amount]:
             keyboard = [[
-                InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်",
-                                     callback_data=f"select_{game_type}")
+                InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data=f"select_{game_type}")
             ]]
             await query.edit_message_text(
                 "⚠️ ဒီပမာဏအတွက် ကုတ်မရှိသေးပါ။",
@@ -445,8 +429,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
 
         keyboard = [[
-            InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်",
-                                 callback_data=f"select_{game_type}")
+            InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data=f"select_{game_type}")
         ]]
 
         game_name = get_game_display_name(game_type)
@@ -479,17 +462,22 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
             ])
         else:
-            keyboard.append(
-                [InlineKeyboardButton("💳 ငွေဖြည့်ရန်", callback_data="topup")])
+            keyboard.append([InlineKeyboardButton("💳 ငွေဖြည့်ရန်", callback_data="topup")])
 
+        # Add KPay and Wave Pay payment options
         keyboard.append([
             InlineKeyboardButton(
-                "🧾 လွှဲငွေဖြင့်ဝယ်ရန်",
-                callback_data=f"buy_receipt_{game_type}_{amount}_{quantity}")
+                "📱 KPay ဖြင့်ဝယ်ရန်",
+                callback_data=f"buy_kpay_{game_type}_{amount}_{quantity}")
         ])
         keyboard.append([
-            InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်",
-                                 callback_data=f"amount_{game_type}_{amount}")
+            InlineKeyboardButton(
+                "📱 Wave Pay ဖြင့်ဝယ်ရန်", 
+                callback_data=f"buy_wave_{game_type}_{amount}_{quantity}")
+        ])
+        
+        keyboard.append([
+            InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data=f"amount_{game_type}_{amount}")
         ])
 
         game_name = get_game_display_name(game_type)
@@ -515,13 +503,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if user["balance"] < total_price:
             keyboard = [[
                 InlineKeyboardButton("💳 ငွေဖြည့်ရန်", callback_data="topup")
-            ],
-                        [
-                            InlineKeyboardButton(
-                                "↩️ နောက်သို့ပြန်ရန်",
-                                callback_data=
-                                f"quantity_{game_type}_{amount}_{quantity}")
-                        ]]
+            ], [
+                InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန�", callback_data=f"quantity_{game_type}_{amount}_{quantity}")
+            ]]
             await query.edit_message_text(
                 "⚠️ လက်ကျန်ငွေမလုံလောက်ပါ။",
                 reply_markup=InlineKeyboardMarkup(keyboard))
@@ -570,6 +554,48 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💳 လက်ကျန်ငွေ: {user['balance']} MMK",
             reply_markup=InlineKeyboardMarkup(keyboard))
 
+    elif data.startswith("buy_kpay_") or data.startswith("buy_wave_"):
+        parts = data.split("_")
+        payment_method = parts[1]  # kpay or wave
+        game_type = parts[2]
+        amount = parts[3]
+        quantity = int(parts[4])
+
+        context.user_data['buying_game'] = game_type
+        context.user_data['buying_amount'] = amount
+        context.user_data['buying_quantity'] = quantity
+        context.user_data['payment_method'] = payment_method
+        context.user_data['receipt_step'] = 'photo'
+
+        payment_display = "KPay" if payment_method == "kpay" else "Wave Pay"
+        payment_info = db["payment"][payment_display]
+
+        keyboard = [[
+            InlineKeyboardButton(f"📋 {payment_info['phone']}", callback_data=f"copy_{payment_info['phone']}")
+        ], [
+            InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data=f"quantity_{game_type}_{amount}_{quantity}")
+        ]]
+
+        price = db["prices"][game_type].get(amount, 0)
+        total_price = price * quantity
+        game_name = get_game_display_name(game_type)
+        unit = "Coin" if "MLBB" in game_type else "UC"
+
+        await query.edit_message_text(
+            f"🛒 {payment_display} ဖြင့်ဝယ်ယူရန်:\n\n"
+            f"🎮 {game_name}\n"
+            f"💎 {amount} {unit} x {quantity}\n"
+            f"💰 စုစုပေါင်းတန်ဖိုး: {total_price} MMK\n\n"
+            f"💳 {payment_display} ဖြင့်ငွေလွှဲရန်:\n"
+            f"📱 ဖုန်းနံပါတ်: {payment_info['phone']}\n"
+            f"👤 အမည်: {payment_info['name']}\n\n"
+            f"📋 ဖုန်းနံပါတ်ကိုကူးယူရန် အပေါ်ကခလုတ်ကိုနှိပ်ပါ:\n\n"
+            f"💰 လွှဲပြီးပါက screenshot နှင့်တကွ အောက်ပါအချက်အလက်များကို ပို့ပေးပါ:\n"
+            f"• လွှဲငွေ ID (နောက်ဆုံး ၅လုံး သို့မဟုတ် ၆လုံး)\n"
+            f"• လွှဲပို့သည့်ငွေပမာဏ\n\n"
+            f"⚠️ သတိပြုရန်: လွှဲငွေ ID မှန်မှန်ကန်ကန်ပို့မှသာ ကုတ်ပေးမည်",
+            reply_markup=InlineKeyboardMarkup(keyboard))
+
     elif data.startswith("buy_receipt_"):
         parts = data.split("_")
         game_type = parts[2]
@@ -582,9 +608,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['receipt_step'] = 'photo'
 
         keyboard = [[
-            InlineKeyboardButton(
-                "↩️ နောက်သို့ပြန်ရန်",
-                callback_data=f"quantity_{game_type}_{amount}_{quantity}")
+            InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data=f"quantity_{game_type}_{amount}_{quantity}")
         ]]
         await query.edit_message_text(
             "🧾 လွှဲငွေဖြင့်ဝယ်ယူရန်:\n\n"
@@ -596,8 +620,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Admin approval handlers
     elif data.startswith("message_topup_"):
         if uid != ADMIN_ID:
-            await query.edit_message_text(
-                "⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
+            await query.edit_message_text("⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
             return
 
         receipt_id = data.split("_")[2]
@@ -612,8 +635,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data.startswith("message_") and not data.startswith("message_topup_"):
         if uid != ADMIN_ID:
-            await query.edit_message_text(
-                "⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
+            await query.edit_message_text("⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
             return
 
         receipt_id = data.split("_")[1]
@@ -628,8 +650,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data.startswith("approve_topup_") or data.startswith("reject_topup_"):
         if uid != ADMIN_ID:
-            await query.edit_message_text(
-                "⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
+            await query.edit_message_text("⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
             return
 
         action, _, receipt_id = data.split("_")
@@ -650,28 +671,23 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 user_id,
                 f"✅ ငွေဖြည့်မှုကို လက်ခံပြီးပါပြီ!\n💰 ငွေပမာဏ: {amount} MMK\n💳 လက်ကျန်ငွေ: {user['balance']} MMK"
             )
-            await query.edit_message_text(
-                f"✅ ငွေဖြည့်မှု {receipt_id} ကို လက်ခံပြီးပါပြီ")
+            await query.edit_message_text(f"✅ ငွေဖြည့်မှု {receipt_id} ကို လက်ခံပြီးပါပြီ")
         else:
             request["status"] = "rejected"
             save_db(db)
-            await context.bot.send_message(user_id,
-                                           "❌ ငွေဖြည့်မှုကို ငြင်းပယ်လိုက်ပါသည်။")
-            await query.edit_message_text(
-                f"❌ ငွေဖြည့်မှု {receipt_id} ကို ငြင်းပယ်ပြီးပါပြီ")
+            await context.bot.send_message(user_id, "❌ ငွေဖြည့်မှုကို ငြင်းပယ်လိုက်ပါသည်။")
+            await query.edit_message_text(f"❌ ငွေဖြည့်မှု {receipt_id} ကို ငြင်းပယ်ပြီးပါပြီ")
 
     elif data.startswith("approve_reg_") or data.startswith("reject_reg_"):
         if uid != ADMIN_ID:
-            await query.edit_message_text(
-                "⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
+            await query.edit_message_text("⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
             return
 
         action, _, user_id = data.split("_")
         user_id = int(user_id)
 
         if user_id not in db["pending_registrations"]:
-            await query.edit_message_text("⚠️ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို မတွေ့ပါ။"
-                                          )
+            await query.edit_message_text("⚠️ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို မတွေ့ပါ။")
             return
 
         if action == "approve":
@@ -688,20 +704,16 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 user_id,
                 "✅ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို လက်ခံပြီးပါပြီ! ယခု bot ကို အသုံးပြုနိုင်ပါပြီ။"
             )
-            await query.edit_message_text(
-                f"✅ အသုံးပြုသူ {user_id} ၏ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို လက်ခံပြီးပါပြီ")
+            await query.edit_message_text(f"✅ အသုံးပြုသူ {user_id} ၏ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို လက်ခံပြီးပါပြီ")
         else:
             del db["pending_registrations"][user_id]
             save_db(db)
-            await context.bot.send_message(
-                user_id, "❌ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို ငြင်းပယ်လိုက်ပါသည်။")
-            await query.edit_message_text(
-                f"❌ အသုံးပြုသူ {user_id} ၏ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို ငြင်းပယ်ပြီးပါပြီ")
+            await context.bot.send_message(user_id, "❌ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို ငြင်းပယ်လိုက်ပါသည်။")
+            await query.edit_message_text(f"❌ အသုံးပြုသူ {user_id} ၏ အကောင့်ဝင်ရန်တောင်းဆိုမှုကို ငြင်းပယ်ပြီးပါပြီ")
 
     elif data.startswith("approve_") or data.startswith("reject_"):
         if uid != ADMIN_ID:
-            await query.edit_message_text(
-                "⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
+            await query.edit_message_text("⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
             return
 
         action, receipt_id = data.split("_")
@@ -714,7 +726,16 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         game_type = receipt["game_type"]
         amount = receipt["amount"]
         quantity = receipt["quantity"]
+        payment_method = receipt.get("payment_method", "receipt")
         user = get_user(user_id)
+
+        # Determine payment method display name
+        if payment_method == "kpay":
+            payment_display = "KPay"
+        elif payment_method == "wave":
+            payment_display = "Wave Pay"
+        else:
+            payment_display = "လွှဲငွေ"
 
         if action == "approve":
             if len(db["stock"][game_type].get(amount, [])) < quantity:
@@ -737,30 +758,29 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "receipt": receipt_id,
                 "game": game_name,
                 "amount": amount,
-                "quantity": quantity
+                "quantity": quantity,
+                "payment_method": payment_method
             })
             receipt["status"] = "approved"
             save_db(db)
 
             codes_text = "\n".join([f"🔑 {code}" for code in codes])
             await context.bot.send_message(
-                user_id, f"✅ လွှဲငွေဖြင့်ဝယ်ယူမှုကို လက်ခံပြီးပါပြီ!\n\n"
+                user_id, f"✅ {payment_display} ဖြင့်ဝယ်ယူမှုကို လက်ခံပြီးပါပြီ!\n\n"
                 f"🎮 {game_name}\n"
                 f"💎 {amount} {unit} x {quantity}\n\n"
                 f"🔑 ကုတ်များ:\n{codes_text}")
-            await query.edit_message_text(f"✅ လွှဲငွေ {receipt_id} ကို လက်ခံပြီးပါပြီ")
+            await query.edit_message_text(f"✅ {payment_display} လွှဲငွေ {receipt_id} ကို လက်ခံပြီးပါပြီ")
         else:
             receipt["status"] = "rejected"
             save_db(db)
-            await context.bot.send_message(
-                user_id, "❌ လွှဲငွေဖြင့်ဝယ်ယူမှုကို ငြင်းပယ်လိုက်ပါသည်။")
-            await query.edit_message_text(f"❌ လွှဲငွေ {receipt_id} ကို ငြင်းပယ်ပြီးပါပြီ")
+            await context.bot.send_message(user_id, f"❌ {payment_display} ဖြင့်ဝယ်ယူမှုကို ငြင်းပယ်လိုက်ပါသည်။")
+            await query.edit_message_text(f"❌ {payment_display} လွှဲငွေ {receipt_id} ကို ငြင်းပယ်ပြီးပါပြီ")
 
     # Admin addstock interactive handlers
     elif data.startswith("addstock_"):
         if uid != ADMIN_ID:
-            await query.edit_message_text(
-                "⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
+            await query.edit_message_text("⚠️ Admin များသာ ဤလုပ်ဆောင်ချက်ကို အသုံးပြုနိုင်ပါသည်။")
             return
 
         game_type = data.split("_")[1]
@@ -789,8 +809,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Handle topup photos
         if 'topup_method' in context.user_data:
             context.user_data['topup_photo_sent'] = True
-            context.user_data[
-                'topup_photo_message_id'] = update.message.message_id
+            context.user_data['topup_photo_message_id'] = update.message.message_id
 
             await update.message.reply_text(
                 "🧾 လွှဲငွေ screenshot လက်ခံရရှိပါသည်။ ကျေးဇူးပြု၍ အောက်ပါအချက်အလက်များကို ပို့ပေးပါ:\n\n"
@@ -800,17 +819,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         # Handle receipt purchase photos
-        elif 'buying_game' in context.user_data and context.user_data.get(
-                'receipt_step') == 'photo':
+        elif 'buying_game' in context.user_data and context.user_data.get('receipt_step') == 'photo':
             context.user_data['receipt_photo_sent'] = True
-            context.user_data[
-                'receipt_photo_message_id'] = update.message.message_id
+            context.user_data['receipt_photo_message_id'] = update.message.message_id
             context.user_data['receipt_step'] = 'id'
 
             await update.message.reply_text(
                 "🧾 လွှဲငွေ screenshot လက်ခံရရှိပါသည်။ ယခု လွှဲငွေ ID (နောက်ဆုံး ၅လုံး သို့မဟုတ် ၆လုံး) ကို ပို့ပေးပါ:\n\n"
                 "ဥပမာ: 123456\n\n"
                 "⚠️ သတိပြုရန်: လွှဲငွေ ID မမှန်ကန်ပါက ငွေဖြည့်မည်မဟုတ်ပါ")
+            return
+
+        # Handle KPay/Wave Pay purchase photos
+        elif 'payment_method' in context.user_data and context.user_data.get('receipt_step') == 'photo':
+            context.user_data['receipt_photo_sent'] = True
+            context.user_data['receipt_photo_message_id'] = update.message.message_id
+            context.user_data['receipt_step'] = 'id'
+
+            payment_method = context.user_data['payment_method']
+            payment_display = "KPay" if payment_method == "kpay" else "Wave Pay"
+            
+            await update.message.reply_text(
+                f"🧾 {payment_display} လွှဲငွေ screenshot လက်ခံရရှိပါသည်။ ယခု လွှဲငွေ ID (နောက်ဆုံး ၅လုံး သို့မဟုတ် ၆လုံး) ကို ပို့ပေးပါ:\n\n"
+                "ဥပမာ: 123456\n\n"
+                "⚠️ သတိပြုရန်: လွှဲငွေ ID မမှန်ကန်ပါက ကုတ်ပေးမည်မဟုတ်ပါ")
             return
 
     # Handle text messages
@@ -820,10 +852,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Handle admin message sending
         if uid == ADMIN_ID and 'admin_messaging' in context.user_data:
             target_user = context.user_data['admin_messaging']['user_id']
-            await context.bot.send_message(target_user,
-                                           f"📬 Admin ထံမှ စာ:\n{text}")
-            await update.message.reply_text(
-                f"✅ အသုံးပြုသူ {target_user} ထံသို့ စာပို့ပြီးပါပြီ")
+            await context.bot.send_message(target_user, f"📬 Admin ထံမှ စာ:\n{text}")
+            await update.message.reply_text(f"✅ အသုံးပြုသူ {target_user} ထံသို့ စာပို့ပြီးပါပြီ")
             del context.user_data['admin_messaging']
             return
 
@@ -834,9 +864,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 selection = context.user_data['selecting_quantity']
 
                 if quantity < 1 or quantity > selection['max_quantity']:
-                    await update.message.reply_text(
-                        f"⚠️ ကုတ်အရေအတွက်သည် 1 မှ {selection['max_quantity']} အတွင်းဖြစ်ရပါမည်။"
-                    )
+                    await update.message.reply_text(f"⚠️ ကုတ်အရေအတွက်သည် 1 မှ {selection['max_quantity']} အတွင်းဖြစ်ရပါမည်။")
                     return
 
                 game_type = selection['game_type']
@@ -850,25 +878,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     keyboard.append([
                         InlineKeyboardButton(
                             f"💰 လက်ကျန်ငွေဖြင့်ဝယ်ရန် ({total_price} MMK)",
-                            callback_data=
-                            f"buy_balance_{game_type}_{amount}_{quantity}")
+                            callback_data=f"buy_balance_{game_type}_{amount}_{quantity}")
                     ])
                 else:
-                    keyboard.append([
-                        InlineKeyboardButton("💳 ငွေဖြည့်ရန်",
-                                             callback_data="topup")
-                    ])
+                    keyboard.append([InlineKeyboardButton("💳 ငွေဖြည့်ရန်", callback_data="topup")])
 
+                # Add KPay and Wave Pay payment options
                 keyboard.append([
                     InlineKeyboardButton(
-                        "🧾 လွှဲငွေဖြင့်ဝယ်ရန်",
-                        callback_data=
-                        f"buy_receipt_{game_type}_{amount}_{quantity}")
+                        "📱 KPay ဖြင့်ဝယ်ရန်",
+                        callback_data=f"buy_kpay_{game_type}_{amount}_{quantity}")
                 ])
                 keyboard.append([
                     InlineKeyboardButton(
-                        "↩️ နောက်သို့ပြန်ရန်",
-                        callback_data=f"amount_{game_type}_{amount}")
+                        "📱 Wave Pay ဖြင့်ဝယ်ရန်", 
+                        callback_data=f"buy_wave_{game_type}_{amount}_{quantity}")
+                ])
+                
+                keyboard.append([
+                    InlineKeyboardButton("↩️ နောက်သို့ပြန်ရန်", callback_data=f"amount_{game_type}_{amount}")
                 ])
 
                 game_name = get_game_display_name(game_type)
@@ -891,8 +919,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 parts = text.split()
                 if len(parts) < 3:
-                    await update.message.reply_text(
-                        "⚠️ အသုံးပြုနည်း: <amount> <price> <code1>")
+                    await update.message.reply_text("⚠️ အသုံးပြုနည်း: <amount> <price> <code1>")
                     return
 
                 game_type = context.user_data['addstock_game']
@@ -934,22 +961,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 parts = text.split()
                 if len(parts) != 2:
-                    await update.message.reply_text(
-                        "⚠️ ပုံစံ: <လွှဲငွေ ID> <ငွေပမာဏ>")
+                    await update.message.reply_text("⚠️ ပုံစံ: <လွှဲငွေ ID> <ငွေပမာဏ>")
                     return
 
                 receipt_id = parts[0]
                 amount = int(parts[1])
 
                 if not validate_receipt_id(receipt_id):
-                    await update.message.reply_text(
-                        "⚠️ လွှဲငွေ ID သည် ၅လုံး သို့မဟုတ် ၆လုံး ကိန်းဂဏန်းဖြစ်ရပါမည်။")
+                    await update.message.reply_text("⚠️ လွှဲငွေ ID သည် ၅လုံး သို့မဟုတ် ၆လုံး ကိန်းဂဏန်းဖြစ်ရပါမည်။")
                     return
 
                 if amount < 1000:
-                    await update.message.reply_text(
-                        "⚠️ ငွေပမာဏသည် မှားယွင်းနေပါသည်။ အနည်းဆုံး ၁၀၀၀ MMK ဖြစ်ရပါမည်။"
-                    )
+                    await update.message.reply_text("⚠️ ငွေပမာဏသည် မှားယွင်းနေပါသည်။ အနည်းဆုံး ၁၀၀၀ MMK ဖြစ်ရပါမည်။")
                     return
 
                 payment_method = context.user_data['topup_method']
@@ -964,15 +987,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 save_db(db)
 
                 keyboard = [[
-                    InlineKeyboardButton(
-                        "✅ လက်ခံရန်",
-                        callback_data=f"approve_topup_{receipt_id}"),
-                    InlineKeyboardButton(
-                        "💬 စာပို့ရန်",
-                        callback_data=f"message_topup_{receipt_id}"),
-                    InlineKeyboardButton(
-                        "❌ ငြင်းပယ်ရန်",
-                        callback_data=f"reject_topup_{receipt_id}")
+                    InlineKeyboardButton("✅ လက်ခံရန်", callback_data=f"approve_topup_{receipt_id}"),
+                    InlineKeyboardButton("💬 စာပို့ရန်", callback_data=f"message_topup_{receipt_id}"),
+                    InlineKeyboardButton("❌ ငြင်းပယ်ရန်", callback_data=f"reject_topup_{receipt_id}")
                 ]]
 
                 await context.bot.forward_message(
@@ -1003,37 +1020,59 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("⚠️ ပုံစံသည် မှားယွင်းနေပါသည်။")
                 return
 
-        # Handle receipt purchase with receipt ID
-        if 'buying_game' in context.user_data and context.user_data.get(
-                'receipt_step') == 'id':
+        # Handle receipt purchase with receipt ID (for both direct receipt and KPay/Wave Pay)
+        if ('buying_game' in context.user_data and context.user_data.get('receipt_step') == 'id') or \
+           ('payment_method' in context.user_data and context.user_data.get('receipt_step') == 'id'):
+            
             if not validate_receipt_id(text):
-                await update.message.reply_text(
-                    "⚠️ လွှဲငွေ ID သည် ၅လုံး သို့မဟုတ် ၆လုံး ကိန်းဂဏန်းဖြစ်ရပါမည်။")
+                await update.message.reply_text("⚠️ လွှဲငွေ ID သည် ၅လုံး သို့မဟုတ် ၆လုံး ကိန်းဂဏန်းဖြစ်ရပါမည်။")
                 return
 
-            game_type = context.user_data['buying_game']
-            amount = context.user_data['buying_amount']
-            quantity = context.user_data['buying_quantity']
+            # Get purchase details based on the method
+            if 'payment_method' in context.user_data:
+                # KPay/Wave Pay purchase
+                game_type = context.user_data['buying_game']
+                amount = context.user_data['buying_amount']
+                quantity = context.user_data['buying_quantity']
+                payment_method = context.user_data['payment_method']
+                purchase_type = "kpay_wave"
+            else:
+                # Direct receipt purchase (existing)
+                game_type = context.user_data['buying_game']
+                amount = context.user_data['buying_amount']
+                quantity = context.user_data['buying_quantity']
+                payment_method = "receipt"
+                purchase_type = "receipt"
+
             photo_message_id = context.user_data['receipt_photo_message_id']
 
+            # Save to receipts database
             db["receipts"][text] = {
                 "user_id": uid,
                 "status": "pending",
                 "game_type": game_type,
                 "amount": amount,
-                "quantity": quantity
+                "quantity": quantity,
+                "payment_method": payment_method,
+                "purchase_type": purchase_type
             }
             save_db(db)
 
             game_name = get_game_display_name(game_type)
             unit = "Coin" if "MLBB" in game_type else "UC"
+            
+            # Determine payment method display name
+            if payment_method == "kpay":
+                payment_display = "KPay"
+            elif payment_method == "wave":
+                payment_display = "Wave Pay"
+            else:
+                payment_display = "လွှဲငွေ"
+
             keyboard = [[
-                InlineKeyboardButton("✅ လက်ခံရန်",
-                                     callback_data=f"approve_{text}"),
-                InlineKeyboardButton("💬 စာပို့ရန်",
-                                     callback_data=f"message_{text}"),
-                InlineKeyboardButton("❌ ငြင်းပယ်ရန်",
-                                     callback_data=f"reject_{text}")
+                InlineKeyboardButton("✅ လက်ခံရန်", callback_data=f"approve_{text}"),
+                InlineKeyboardButton("💬 စာပို့ရန်", callback_data=f"message_{text}"),
+                InlineKeyboardButton("❌ ငြင်းပယ်ရန်", callback_data=f"reject_{text}")
             ]]
 
             await context.bot.forward_message(
@@ -1043,21 +1082,28 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=f"📬 ကုတ်ဝယ်ယူမှု:\n"
+                text=f"📬 ကုတ်ဝယ်ယူမှု ({payment_display}):\n"
                 f"👤 အသုံးပြုသူ: {uid}\n"
                 f"🎮 ဂိမ်း: {game_name}\n"
                 f"💎 {amount} {unit} x {quantity}\n"
-                f"🧾 လွှဲငွေ ID: {text}",
+                f"🧾 လွှဲငွေ ID: {text}\n"
+                f"💳 နည်းလမ်း: {payment_display}",
                 reply_markup=InlineKeyboardMarkup(keyboard))
+            
             await update.message.reply_text("⏳ Admin မှ စစ်ဆေးနေပါသည်...")
 
             # Clear user data
-            del context.user_data['buying_game']
-            del context.user_data['buying_amount']
-            del context.user_data['buying_quantity']
-            del context.user_data['receipt_photo_sent']
-            del context.user_data['receipt_photo_message_id']
-            del context.user_data['receipt_step']
+            keys_to_delete = [
+                'buying_game', 'buying_amount', 'buying_quantity', 
+                'receipt_photo_sent', 'receipt_photo_message_id', 'receipt_step'
+            ]
+            for key in keys_to_delete:
+                if key in context.user_data:
+                    del context.user_data[key]
+            
+            # Clear payment method if exists
+            if 'payment_method' in context.user_data:
+                del context.user_data['payment_method']
             return
 
 
@@ -1072,11 +1118,9 @@ async def setbalance(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = get_user(uid)
         user["balance"] = amount
         save_db(db)
-        await update.message.reply_text(
-            f"✅ အသုံးပြုသူ {uid} ၏ လက်ကျန်ငွေကို {amount} MMK သို့ပြောင်းပြီးပါပြီ")
+        await update.message.reply_text(f"✅ အသုံးပြုသူ {uid} ၏ လက်ကျန်ငွေကို {amount} MMK သို့ပြောင်းပြီးပါပြီ")
     except:
-        await update.message.reply_text(
-            "အသုံးပြုနည်း: /setbalance <user_id> <amount>")
+        await update.message.reply_text("အသုံးပြုနည်း: /setbalance <user_id> <amount>")
 
 
 async def addstock(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1085,17 +1129,12 @@ async def addstock(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Interactive version
     keyboard = [[
-        InlineKeyboardButton("🎮 Mobile Legends (Bal)",
-                             callback_data="addstock_MLBBbal")
-    ],
-                [
-                    InlineKeyboardButton("🎮 Mobile Legends (PH)",
-                                         callback_data="addstock_MLBBph")
-                ],
-                [
-                    InlineKeyboardButton("🎮 PUPG Mobile",
-                                         callback_data="addstock_PUPG")
-                ]]
+        InlineKeyboardButton("🎮 Mobile Legends (Bal)", callback_data="addstock_MLBBbal")
+    ], [
+        InlineKeyboardButton("🎮 Mobile Legends (PH)", callback_data="addstock_MLBBph")
+    ], [
+        InlineKeyboardButton("🎮 PUPG Mobile", callback_data="addstock_PUPG")
+    ]]
     await update.message.reply_text(
         "🎮 ဂိမ်းအမျိုးအစားရွေးချယ်ပါ:",
         reply_markup=InlineKeyboardMarkup(keyboard))
@@ -1106,8 +1145,7 @@ async def delstock(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if len(context.args) < 3:
-        await update.message.reply_text(
-            "အသုံးပြုနည်း: /delstock <MLBBbal/MLBBph/PUPG> <amount> <code>")
+        await update.message.reply_text("အသုံးပြုနည်း: /delstock <MLBBbal/MLBBph/PUPG> <amount> <code>")
         return
 
     try:
@@ -1116,13 +1154,11 @@ async def delstock(update: Update, context: ContextTypes.DEFAULT_TYPE):
         code_to_delete = context.args[2]
 
         if game_type not in ["MLBBbal", "MLBBph", "PUPG"]:
-            await update.message.reply_text(
-                "ဂိမ်းအမျိုးအစား: MLBBbal, MLBBph, သို့မဟုတ် PUPG")
+            await update.message.reply_text("ဂိမ်းအမျိုးအစား: MLBBbal, MLBBph, သို့မဟုတ် PUPG")
             return
 
         if game_type not in db["stock"] or amount not in db["stock"][game_type]:
-            await update.message.reply_text(
-                "⚠️ ဒီဂိမ်းအမျိုးအစား သို့မဟုတ် ပမာဏ မရှိပါ။")
+            await update.message.reply_text("⚠️ ဒီဂိမ်းအမျိုးအစား သို့မဟုတ် ပမာဏ မရှိပါ။")
             return
 
         if code_to_delete in db["stock"][game_type][amount]:
@@ -1131,22 +1167,18 @@ async def delstock(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             game_name = get_game_display_name(game_type)
             unit = "Coin" if "MLBB" in game_type else "UC"
-            await update.message.reply_text(
-                f"✅ {game_name} {amount} {unit} မှ ကုတ် {code_to_delete} ကို ဖျက်ပြီးပါပြီ"
-            )
+            await update.message.reply_text(f"✅ {game_name} {amount} {unit} မှ ကုတ် {code_to_delete} ကို ဖျက်ပြီးပါပြီ")
         else:
             await update.message.reply_text("⚠️ ဒီကုတ်ကို မတွေ့ပါ။")
     except:
-        await update.message.reply_text(
-            "အသုံးပြုနည်း: /delstock <MLBBbal/MLBBph/PUPG> <amount> <code>")
+        await update.message.reply_text("အသုံးပြုနည်း: /delstock <MLBBbal/MLBBph/PUPG> <amount> <code>")
 
 
 async def setprice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     if len(context.args) < 3:
-        await update.message.reply_text(
-            "အသုံးပြုနည်း: /setprice <MLBBbal/MLBBph/PUPG> <amount> <price>")
+        await update.message.reply_text("အသုံးပြုနည်း: /setprice <MLBBbal/MLBBph/PUPG> <amount> <price>")
         return
 
     try:
@@ -1155,8 +1187,7 @@ async def setprice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         price = int(context.args[2])
 
         if game_type not in ["MLBBbal", "MLBBph", "PUPG"]:
-            await update.message.reply_text(
-                "ဂိမ်းအမျိုးအစား: MLBBbal, MLBBph, သို့မဟုတ် PUPG")
+            await update.message.reply_text("ဂိမ်းအမျိုးအစား: MLBBbal, MLBBph, သို့မဟုတ် PUPG")
             return
 
         if game_type not in db["prices"]:
@@ -1167,12 +1198,9 @@ async def setprice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         game_name = get_game_display_name(game_type)
         unit = "Coin" if "MLBB" in game_type else "UC"
-        await update.message.reply_text(
-            f"✅ {game_name} {amount} {unit} ၏ ဈေးနှုန်းကို {price} MMK အဖြစ်သတ်မှတ်ပြီးပါပြီ"
-        )
+        await update.message.reply_text(f"✅ {game_name} {amount} {unit} ၏ ဈေးနှုန်းကို {price} MMK အဖြစ်သတ်မှတ်ပြီးပါပြီ")
     except:
-        await update.message.reply_text(
-            "အသုံးပြုနည်း: /setprice <MLBBbal/MLBBph/PUPG> <amount> <price>")
+        await update.message.reply_text("အသုံးပြုနည်း: /setprice <MLBBbal/MLBBph/PUPG> <amount> <price>")
 
 
 async def setpayment(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1184,8 +1212,7 @@ async def setpayment(update: Update, context: ContextTypes.DEFAULT_TYPE):
         name = " ".join(context.args[2:])
 
         if method not in ["Wave", "Kpay"]:
-            await update.message.reply_text(
-                "ငွေပေးချေမှုနည်းလမ်း: Wave သို့မဟုတ် KPay")
+            await update.message.reply_text("ငွေပေးချေမှုနည်းလမ်း: Wave သို့မဟုတ် KPay")
             return
 
         db["payment"][method] = {"phone": phone, "name": name}
@@ -1194,8 +1221,7 @@ async def setpayment(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"✅ {method} ပေးချေမှုအချက်အလက်ကို ပြင်ဆင်ပြီးပါပြီ\n📱 ဖုန်း: {phone}\n👤 အမည်: {name}"
         )
     except:
-        await update.message.reply_text(
-            "အသုံးပြုနည်း: /setpayment <Wave/KPay> <phone> <name>")
+        await update.message.reply_text("အသုံးပြုနည်း: /setpayment <Wave/KPay> <phone> <name>")
 
 
 async def viewhistory(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1205,16 +1231,14 @@ async def viewhistory(update: Update, context: ContextTypes.DEFAULT_TYPE):
         uid = int(context.args[0])
         user = get_user(uid)
         if not user["history"]:
-            await update.message.reply_text(
-                f"အသုံးပြုသူ {uid} ၏ မှတ်တမ်းမရှိပါ")
+            await update.message.reply_text(f"အသုံးပြုသူ {uid} ၏ မှတ်တမ်းမရှိပါ")
             return
 
         history_text = ""
         for i, h in enumerate(user["history"], 1):
             history_text += f"{i}. {h}\n"
 
-        await update.message.reply_text(
-            f"📜 အသုံးပြုသူ {uid} ၏ မှတ်တမ်း:\n{history_text}")
+        await update.message.reply_text(f"📜 အသုံးပြုသူ {uid} ၏ မှတ်တမ်း:\n{history_text}")
     except:
         await update.message.reply_text("အသုံးပြုနည်း: /viewhistory <user_id>")
 
@@ -1224,12 +1248,9 @@ async def admhelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Calculate stock counts
-    mlbbbal_count = sum(
-        len(codes) for codes in db["stock"].get("MLBBbal", {}).values())
-    mlbbph_count = sum(
-        len(codes) for codes in db["stock"].get("MLBBph", {}).values())
-    pupg_count = sum(
-        len(codes) for codes in db["stock"].get("PUPG", {}).values())
+    mlbbbal_count = sum(len(codes) for codes in db["stock"].get("MLBBbal", {}).values())
+    mlbbph_count = sum(len(codes) for codes in db["stock"].get("MLBBph", {}).values())
+    pupg_count = sum(len(codes) for codes in db["stock"].get("PUPG", {}).values())
 
     # Calculate total orders
     total_orders = 0
@@ -1237,14 +1258,11 @@ async def admhelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         total_orders += len(user_data.get("history", []))
 
     # Calculate total user balance
-    total_user_balance = sum(
-        user_data.get("balance", 0) for user_data in db["users"].values())
+    total_user_balance = sum(user_data.get("balance", 0) for user_data in db["users"].values())
 
     # Calculate pending counts (only pending status)
-    pending_receipts = len(
-        [r for r in db["receipts"].values() if r["status"] == "pending"])
-    pending_topups = len(
-        [r for r in db["topup_requests"].values() if r["status"] == "pending"])
+    pending_receipts = len([r for r in db["receipts"].values() if r["status"] == "pending"])
+    pending_topups = len([r for r in db["topup_requests"].values() if r["status"] == "pending"])
     pending_registrations = len(db.get("pending_registrations", {}))
 
     help_text = f"""
@@ -1297,8 +1315,7 @@ def main():
     app.add_handler(CommandHandler("viewhistory", viewhistory))
     app.add_handler(CommandHandler("admhelp", admhelp))
     app.add_handler(CallbackQueryHandler(callback_handler))
-    app.add_handler(
-        MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
     app.run_polling()
 
 
